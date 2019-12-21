@@ -1,10 +1,13 @@
 // Mock data object used for LineChart and BarChart
 
+const bigArray = Array.from({ length: 200 }, () =>
+  Math.floor(Math.random() * 200)
+);
 const data = {
   labels: ["January", "February", "March", "April", "May", "June"],
   datasets: [
     {
-      data: [-50, -20, -2, 86, 71, 100],
+      data: bigArray,
       color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})` // optional
     },
     {
@@ -84,7 +87,10 @@ const progressChartData = {
 const stackedBarGraphData = {
   labels: ["Test1", "Test2"],
   legend: ["L1", "L2", "L3"],
-  data: [[60, 60, 60], [30, 30, 60]],
+  data: [
+    [60, 60, 60],
+    [30, 30, 60]
+  ],
   barColors: ["#dfe4ea", "#ced6e0", "#a4b0be"]
 };
 
