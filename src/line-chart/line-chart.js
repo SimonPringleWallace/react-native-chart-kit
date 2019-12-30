@@ -11,36 +11,11 @@ import {
 } from "react-native-svg/";
 import AbstractChart from "../abstract-chart";
 import { LegendItem } from "./legend-item";
+import { Dots } from "./dots";
 
-//16s baseline - 200 datapoints
-//get data is called often, store get data in state and then just reference that those values? Calling getDatas in the render
-// hidepoints at index should be a hash map... or anything but an array? Maybe add to state?
+const Profiler = React.unstable_Profiler;
 
 class LineChart extends AbstractChart {
-  constructor(props) {
-    super(props);
-    this.state = {
-      configData: []
-    };
-  }
-
-  componentWillMount() {
-    this.setState({ configData: this.getDatas(this.props.data.datasets) });
-  }
-
-  componentDidUpdate() {
-    const newDate = new Date();
-    console.log(
-      "stop",
-      newDate.getMinutes(),
-      "-",
-      newDate.getSeconds(),
-      "-",
-      newDate.getMilliseconds()
-    );
-    console.log(this.state);
-  }
-
   getColor = (dataset, opacity) => {
     return (dataset.color || this.props.chartConfig.color)(opacity);
   };
@@ -60,80 +35,15 @@ class LineChart extends AbstractChart {
     const { propsForDots = {} } = chartConfig;
     return { r: "4", ...propsForDots };
   };
-  renderDots = config => {
-    const {
-      data,
-      width,
-      height,
-      paddingTop,
-      paddingRight,
-      onDataPointClick
-    } = config;
-    const output = [];
-    const baseHeight = this.calcBaseHeight(this.state.configData, height);
-    const { getDotColor, hidePointsAtIndex = [] } = this.props;
-    data.forEach(dataset => {
-      dataset.data.forEach((x, i) => {
-        if (hidePointsAtIndex.includes(i)) {
-          return;
-        }
-        const cx =
-          paddingRight + (i * (width - paddingRight)) / dataset.data.length;
-        const cy =
-          ((baseHeight - this.calcHeight(x, this.state.configData, height)) /
-            4) *
-            3 +
-          paddingTop;
-        const onPress = () => {
-          if (!onDataPointClick || hidePointsAtIndex.includes(i)) {
-            return;
-          }
-
-          onDataPointClick({
-            index: i,
-            value: x,
-            dataset,
-            x: cx,
-            y: cy,
-            getColor: opacity => this.getColor(dataset, opacity)
-          });
-        };
-
-        output.push(
-          <Circle
-            key={Math.random()}
-            cx={cx}
-            cy={cy}
-            fill={
-              typeof getDotColor === "function"
-                ? getDotColor(x, i)
-                : this.getColor(dataset, 0.9)
-            }
-            onPress={onPress}
-            {...this.getPropsForDots(x, i)}
-          />,
-          <Circle
-            key={Math.random()}
-            cx={cx}
-            cy={cy}
-            r="12"
-            fill="#fff"
-            fillOpacity={0}
-            onPress={onPress}
-          />
-        );
-      });
-    });
-    return output;
-  };
 
   renderShadow = config => {
     if (this.props.bezier) {
       return this.renderBezierShadow(config);
     }
 
-    const { width, height, paddingRight, paddingTop } = config;
-    const baseHeight = this.calcBaseHeight(this.state.configData, height);
+    const { width, height, paddingRight, paddingTop, data } = config;
+    const datas = this.getDatas(data);
+    const baseHeight = this.calcBaseHeight(datas, height);
     return config.data.map((dataset, index) => {
       return (
         <Polygon
@@ -145,10 +55,7 @@ class LineChart extends AbstractChart {
                   paddingRight +
                   (i * (width - paddingRight)) / dataset.data.length;
                 const y =
-                  ((baseHeight -
-                    this.calcHeight(d, this.state.configData, height)) /
-                    4) *
-                    3 +
+                  ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
                   paddingTop;
                 return `${x},${y}`;
               })
@@ -172,15 +79,14 @@ class LineChart extends AbstractChart {
 
     const { width, height, paddingRight, paddingTop, data } = config;
     const output = [];
-    const baseHeight = this.calcBaseHeight(this.state.configData, height);
+    const datas = this.getDatas(data);
+    const baseHeight = this.calcBaseHeight(datas, height);
     data.forEach((dataset, index) => {
       const points = dataset.data.map((d, i) => {
         const x =
           (i * (width - paddingRight)) / dataset.data.length + paddingRight;
         const y =
-          ((baseHeight - this.calcHeight(d, this.state.configData, height)) /
-            4) *
-            3 +
+          ((baseHeight - this.calcHeight(d, data, height)) / 4) * 3 +
           paddingTop;
         return `${x},${y}`;
       });
@@ -209,13 +115,10 @@ class LineChart extends AbstractChart {
       Math.floor(
         paddingRight + (i * (width - paddingRight)) / dataset.data.length
       );
-    const baseHeight = this.calcBaseHeight(this.state.configData, height);
+    const datas = this.getDatas(data);
+    const baseHeight = this.calcBaseHeight(datas, height);
     const y = i => {
-      const yHeight = this.calcHeight(
-        dataset.data[i],
-        this.state.configData,
-        height
-      );
+      const yHeight = this.calcHeight(dataset.data[i], datas, height);
       return Math.floor(((baseHeight - yHeight) / 4) * 3 + paddingTop);
     };
 
@@ -288,16 +191,25 @@ class LineChart extends AbstractChart {
     ));
   };
 
+  logMeasurement = async (
+    id,
+    phase,
+    actualTime,
+    baseTime,
+    startTime,
+    commitTime,
+    interactions
+  ) => {
+    console.log("--------- logProfile fired -----------");
+    console.log(`${id}'s ${phase.toUpperCase()} phase:`);
+    console.log(`Actual time: ${actualTime} ms`);
+    console.log(`Base time: ${baseTime} ms`);
+    console.log(`Start time (since component mounted): ${startTime} ms`);
+    console.log(`Commit time (since component mounted): ${commitTime} ms`);
+    console.log(interactions);
+  };
+
   render() {
-    const newDate = new Date();
-    console.log(
-      "start",
-      newDate.getMinutes(),
-      "-",
-      newDate.getSeconds(),
-      "-",
-      newDate.getMilliseconds()
-    );
     const {
       width,
       height,
@@ -333,124 +245,134 @@ class LineChart extends AbstractChart {
       horizontalLabelRotation
     };
     const legendOffset = this.props.data.legend ? height * 0.15 : 0;
+    const datas = this.getDatas(this.props.data.datasets);
     return (
-      <View style={style}>
-        <Svg
-          height={height + paddingBottom + legendOffset}
-          width={width - margin * 2 - marginRight}
-        >
-          <Rect
-            width="100%"
-            height={height + legendOffset}
-            rx={borderRadius}
-            ry={borderRadius}
-            fill="url(#backgroundGradient)"
-          />
-          {this.props.data.legend &&
-            this.renderLegend(config.width, legendOffset)}
-          <G x="0" y={legendOffset}>
-            {this.renderDefs({
-              ...config,
-              ...this.props.chartConfig
-            })}
-            <G>
-              {withInnerLines
-                ? this.renderHorizontalLines({
-                    ...config,
-                    count: 4,
-                    paddingTop,
-                    paddingRight
-                  })
-                : withOuterLines
-                ? this.renderHorizontalLine({
-                    ...config,
-                    paddingTop,
-                    paddingRight
-                  })
-                : null}
-            </G>
-            <G>
-              {withHorizontalLabels
-                ? this.renderHorizontalLabels({
-                    ...config,
-                    count:
-                      Math.min(...this.state.configData) ===
-                      Math.max(...this.state.configData)
-                        ? 1
-                        : 4,
-                    data: this.state.configData,
-                    paddingTop,
-                    paddingRight,
-                    formatYLabel
-                  })
-                : null}
-            </G>
-            <G>
-              {withInnerLines
-                ? this.renderVerticalLines({
-                    ...config,
-                    data: data.datasets[0].data,
-                    paddingTop,
-                    paddingRight
-                  })
-                : withOuterLines
-                ? this.renderVerticalLine({
-                    ...config,
-                    paddingTop,
-                    paddingRight
-                  })
-                : null}
-            </G>
-            <G>
-              {withVerticalLabels
-                ? this.renderVerticalLabels({
-                    ...config,
-                    labels,
-                    paddingRight,
-                    paddingTop,
-                    formatXLabel
-                  })
-                : null}
-            </G>
-            <G>
-              {this.renderLine({
+      <Profiler id={"line chart content"} onRender={this.logMeasurement}>
+        <View style={style}>
+          <Svg
+            height={height + paddingBottom + legendOffset}
+            width={width - margin * 2 - marginRight}
+          >
+            <Rect
+              width="100%"
+              height={height + legendOffset}
+              rx={borderRadius}
+              ry={borderRadius}
+              fill="url(#backgroundGradient)"
+            />
+            {this.props.data.legend &&
+              this.renderLegend(config.width, legendOffset)}
+            <G x="0" y={legendOffset}>
+              {this.renderDefs({
                 ...config,
-                paddingRight,
-                paddingTop,
-                data: data.datasets
+                ...this.props.chartConfig
               })}
-            </G>
-            <G>
-              {withShadow &&
-                this.renderShadow({
+              <G>
+                {withInnerLines
+                  ? this.renderHorizontalLines({
+                      ...config,
+                      count: 4,
+                      paddingTop,
+                      paddingRight
+                    })
+                  : withOuterLines
+                  ? this.renderHorizontalLine({
+                      ...config,
+                      paddingTop,
+                      paddingRight
+                    })
+                  : null}
+              </G>
+              <G>
+                {withHorizontalLabels
+                  ? this.renderHorizontalLabels({
+                      ...config,
+                      count: Math.min(...datas) === Math.max(...datas) ? 1 : 4,
+                      data: datas,
+                      paddingTop,
+                      paddingRight,
+                      formatYLabel
+                    })
+                  : null}
+              </G>
+              <G>
+                {withInnerLines
+                  ? this.renderVerticalLines({
+                      ...config,
+                      data: data.datasets[0].data,
+                      paddingTop,
+                      paddingRight
+                    })
+                  : withOuterLines
+                  ? this.renderVerticalLine({
+                      ...config,
+                      paddingTop,
+                      paddingRight
+                    })
+                  : null}
+              </G>
+              <G>
+                {withVerticalLabels
+                  ? this.renderVerticalLabels({
+                      ...config,
+                      labels,
+                      paddingRight,
+                      paddingTop,
+                      formatXLabel
+                    })
+                  : null}
+              </G>
+              <G>
+                {this.renderLine({
                   ...config,
-                  data: data.datasets,
                   paddingRight,
-                  paddingTop
-                })}
-            </G>
-            <G>
-              {withDots &&
-                this.renderDots({
-                  ...config,
-                  data: data.datasets,
                   paddingTop,
-                  paddingRight,
-                  onDataPointClick
+                  data: data.datasets
                 })}
+              </G>
+              <G>
+                {withShadow &&
+                  this.renderShadow({
+                    ...config,
+                    data: data.datasets,
+                    paddingRight,
+                    paddingTop
+                  })}
+              </G>
+              <G>
+                {withDots && (
+                  <Dots
+                    config={{
+                      ...config,
+                      paddingRight,
+                      paddingTop,
+                      onDataPointClick
+                    }}
+                    data={data.datasets}
+                    paddingTop={paddingTop}
+                    paddingRight={paddingRight}
+                    datas={this.getDatas(this.props.data.datasets)}
+                    calcHeight={this.calcHeight}
+                    calcBaseHeight={this.calcBaseHeight}
+                    getDotColor={this.props.getDotColor}
+                    getColor={this.getColor}
+                    getPropsForDots={this.getPropsForDots}
+                  />
+                )}
+              </G>
+              <G>
+                {decorator &&
+                  decorator({
+                    ...config,
+                    data: data.datasets,
+                    paddingTop,
+                    paddingRight
+                  })}
+              </G>
             </G>
-            <G>
-              {decorator &&
-                decorator({
-                  ...config,
-                  data: data.datasets,
-                  paddingTop,
-                  paddingRight
-                })}
-            </G>
-          </G>
-        </Svg>
-      </View>
+          </Svg>
+        </View>
+      </Profiler>
     );
   }
 }
