@@ -1,17 +1,10 @@
 import React from "react";
 import { View } from "react-native";
-import {
-  Svg,
-  Circle,
-  Polygon,
-  Polyline,
-  Path,
-  Rect,
-  G
-} from "react-native-svg/";
+import { Svg, Polygon, Polyline, Path, Rect, G } from "react-native-svg/";
 import AbstractChart from "../abstract-chart";
 import { LegendItem } from "./legend-item";
 import { Dots } from "./dots";
+import { VerticalLines } from "./vertical-lines";
 
 const Profiler = React.unstable_Profiler;
 
@@ -296,20 +289,22 @@ class LineChart extends AbstractChart {
                   : null}
               </G>
               <G>
-                {withInnerLines
-                  ? this.renderVerticalLines({
-                      ...config,
-                      data: data.datasets[0].data,
-                      paddingTop,
-                      paddingRight
-                    })
-                  : withOuterLines
-                  ? this.renderVerticalLine({
-                      ...config,
-                      paddingTop,
-                      paddingRight
-                    })
-                  : null}
+                {withInnerLines ? (
+                  <VerticalLines
+                    {...config}
+                    backgroundLineProps={this.getPropsForBackgroundLines()}
+                    data={data.datasets[0].data}
+                    paddingTop
+                    paddingRight
+                  />
+                ) : withOuterLines ? (
+                  <VerticalLines
+                    {...config}
+                    backgroundLineProps={this.getPropsForBackgroundLines()}
+                    paddingTop
+                    paddingRight
+                  />
+                ) : null}
               </G>
               <G>
                 {withVerticalLabels
