@@ -55,7 +55,7 @@ export const Dots = props => {
           {...props.getPropsForDots(x, i)}
         />,
         <Circle
-          key={i + 1000}
+          key={Number.MAX_SAFE_INTEGER - i}
           cx={cx}
           cy={cy}
           r="12"
