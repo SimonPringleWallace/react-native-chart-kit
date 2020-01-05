@@ -5,6 +5,7 @@ import AbstractChart from "../abstract-chart";
 import { LegendItem } from "./legend-item";
 import { Dots } from "./dots";
 import { VerticalLines } from "./vertical-lines";
+import { calcBaseHeight, calcHeight } from "./../chart-utils";
 
 const Profiler = React.unstable_Profiler;
 
@@ -36,7 +37,14 @@ class LineChart extends AbstractChart {
 
     const { width, height, paddingRight, paddingTop, data } = config;
     const datas = this.getDatas(data);
-    const baseHeight = this.calcBaseHeight(datas, height);
+    const minDatasetValue = Math.min(...datas);
+    const maxDatasetValue = Math.max(...datas);
+    const baseHeight = calcBaseHeight(
+      minDatasetValue,
+      maxDatasetValue,
+      height,
+      this.props.fromZero
+    );
     return config.data.map((dataset, index) => {
       return (
         <Polygon
@@ -48,7 +56,16 @@ class LineChart extends AbstractChart {
                   paddingRight +
                   (i * (width - paddingRight)) / dataset.data.length;
                 const y =
-                  ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
+                  ((baseHeight -
+                    calcHeight(
+                      d,
+                      height,
+                      minDatasetValue,
+                      maxDatasetValue,
+                      this.props.fromZero
+                    )) /
+                    4) *
+                    3 +
                   paddingTop;
                 return `${x},${y}`;
               })
@@ -73,13 +90,29 @@ class LineChart extends AbstractChart {
     const { width, height, paddingRight, paddingTop, data } = config;
     const output = [];
     const datas = this.getDatas(data);
-    const baseHeight = this.calcBaseHeight(datas, height);
+    const minDatasetValue = Math.min(...datas);
+    const maxDatasetValue = Math.max(...datas);
+    const baseHeight = calcBaseHeight(
+      minDatasetValue,
+      maxDatasetValue,
+      height,
+      this.props.fromZero
+    );
     data.forEach((dataset, index) => {
       const points = dataset.data.map((d, i) => {
         const x =
           (i * (width - paddingRight)) / dataset.data.length + paddingRight;
         const y =
-          ((baseHeight - this.calcHeight(d, data, height)) / 4) * 3 +
+          ((baseHeight -
+            calcHeight(
+              d,
+              height,
+              minDatasetValue,
+              maxDatasetValue,
+              this.props.fromZero
+            )) /
+            4) *
+            3 +
           paddingTop;
         return `${x},${y}`;
       });
@@ -109,9 +142,22 @@ class LineChart extends AbstractChart {
         paddingRight + (i * (width - paddingRight)) / dataset.data.length
       );
     const datas = this.getDatas(data);
-    const baseHeight = this.calcBaseHeight(datas, height);
+    const minDatasetValue = Math.min(...datas);
+    const maxDatasetValue = Math.max(...datas);
+    const baseHeight = calcBaseHeight(
+      minDatasetValue,
+      maxDatasetValue,
+      height,
+      this.props.fromZero
+    );
     const y = i => {
-      const yHeight = this.calcHeight(dataset.data[i], datas, height);
+      const yHeight = calcHeight(
+        dataset.data[i],
+        height,
+        minDatasetValue,
+        maxDatasetValue,
+        this.props.fromZero
+      );
       return Math.floor(((baseHeight - yHeight) / 4) * 3 + paddingTop);
     };
 
@@ -347,11 +393,10 @@ class LineChart extends AbstractChart {
                     paddingTop={paddingTop}
                     paddingRight={paddingRight}
                     datas={this.getDatas(this.props.data.datasets)}
-                    calcHeight={this.calcHeight}
-                    calcBaseHeight={this.calcBaseHeight}
                     getDotColor={this.props.getDotColor}
                     getColor={this.getColor}
                     getPropsForDots={this.getPropsForDots}
+                    fromZero={this.props.fromZero}
                   />
                 )}
               </G>

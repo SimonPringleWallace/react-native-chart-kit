@@ -1,6 +1,6 @@
 import React from "react";
 import { Circle } from "react-native-svg";
-
+import { calcBaseHeight, calcHeight } from "./../chart-utils";
 // props:
 // renderDots = config => {
 
@@ -13,7 +13,14 @@ export const Dots = props => {
     onDataPointClick
   } = props.config;
   const output = [];
-  const baseHeight = props.calcBaseHeight(props.datas, height);
+  const minDatasetValue = Math.min(...props.datas);
+  const maxDatasetValue = Math.max(...props.datas);
+  const baseHeight = calcBaseHeight(
+    minDatasetValue,
+    maxDatasetValue,
+    height,
+    props.fromZero
+  );
   const { getDotColor, hidePointsAtIndex = [] } = props;
 
   props.data.forEach(dataset => {
@@ -24,7 +31,16 @@ export const Dots = props => {
       const cx =
         paddingRight + (i * (width - paddingRight)) / dataset.data.length;
       const cy =
-        ((baseHeight - props.calcHeight(x, props.datas, height)) / 4) * 3 +
+        ((baseHeight -
+          calcHeight(
+            x,
+            height,
+            minDatasetValue,
+            maxDatasetValue,
+            props.fromZero
+          )) /
+          4) *
+          3 +
         paddingTop;
 
       const onPress = () => {

@@ -1,43 +1,8 @@
 import React, { Component } from "react";
 import { LinearGradient, Line, Text, Defs, Stop } from "react-native-svg";
 import { HorizontalLines } from "./horizontal-lines";
+import { calcScaler } from "./../chart-utils";
 class AbstractChart extends Component {
-  calcScaler = data => {
-    if (this.props.fromZero) {
-      return Math.max(...data, 0) - Math.min(...data, 0) || 1;
-    } else {
-      return Math.max(...data) - Math.min(...data) || 1;
-    }
-  };
-
-  calcBaseHeight = (data, height) => {
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    if (min >= 0 && max >= 0) {
-      return height;
-    } else if (min < 0 && max <= 0) {
-      return 0;
-    } else if (min < 0 && max > 0) {
-      return (height * max) / this.calcScaler(data);
-    }
-  };
-
-  calcHeight = (val, data, height) => {
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    if (min < 0 && max > 0) {
-      return height * (val / this.calcScaler(data));
-    } else if (min >= 0 && max >= 0) {
-      return this.props.fromZero
-        ? height * (val / this.calcScaler(data))
-        : height * ((val - min) / this.calcScaler(data));
-    } else if (min < 0 && max <= 0) {
-      return this.props.fromZero
-        ? height * (val / this.calcScaler(data))
-        : height * ((val - max) / this.calcScaler(data));
-    }
-  };
-
   getPropsForBackgroundLines() {
     const { propsForBackgroundLines = {} } = this.props.chartConfig;
     return {
@@ -109,9 +74,16 @@ class AbstractChart extends Component {
       } else if (config.horizontalOverride) {
         yLabel = config.horizontalOverride[i];
       } else {
+        const minDatasetValue = Math.min(...data);
+        const maxDatasetValue = Math.max(...data);
         const label = this.props.fromZero
-          ? (this.calcScaler(data) / (count - 1)) * i + Math.min(...data, 0)
-          : (this.calcScaler(data) / (count - 1)) * i + Math.min(...data);
+          ? (calcScaler(minDatasetValue, maxDatasetValue, true) / (count - 1)) *
+              i +
+            Math.min(minDatasetValue, 0)
+          : (calcScaler(minDatasetValue, maxDatasetValue, false) /
+              (count - 1)) *
+              i +
+            minDatasetValue;
         yLabel = `${yAxisLabel}${formatYLabel(
           label.toFixed(decimalPlaces)
         )}${yAxisSuffix}`;
