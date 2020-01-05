@@ -1,7 +1,6 @@
 import React, { Component } from "react";
-
 import { LinearGradient, Line, Text, Defs, Stop } from "react-native-svg";
-
+import { HorizontalLines } from "./horizontal-lines";
 class AbstractChart extends Component {
   calcScaler = data => {
     if (this.props.fromZero) {
@@ -24,8 +23,8 @@ class AbstractChart extends Component {
   };
 
   calcHeight = (val, data, height) => {
-    const max = Math.max(...data);
     const min = Math.min(...data);
+    const max = Math.max(...data);
     if (min < 0 && max > 0) {
       return height * (val / this.calcScaler(data));
     } else if (min >= 0 && max >= 0) {
@@ -63,26 +62,18 @@ class AbstractChart extends Component {
   }
 
   renderHorizontalLines = config => {
-    const { count, width, height, paddingTop, paddingRight } = config;
-    return [...new Array(count)].map((_, i) => {
-      return (
-        <Line
-          key={Math.random()}
-          x1={paddingRight}
-          y1={(height / 4) * i + paddingTop}
-          x2={width}
-          y2={(height / 4) * i + paddingTop}
-          {...this.getPropsForBackgroundLines()}
-        />
-      );
-    });
+    return (
+      <HorizontalLines
+        {...config}
+        backgroundLineProps={this.getPropsForBackgroundLines()}
+      />
+    );
   };
 
   renderHorizontalLine = config => {
     const { width, height, paddingTop, paddingRight } = config;
     return (
       <Line
-        key={Math.random()}
         x1={paddingRight}
         y1={height - height / 4 + paddingTop}
         x2={width}
