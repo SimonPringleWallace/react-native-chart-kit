@@ -35,10 +35,14 @@ class LineChart extends AbstractChart {
       return this.renderBezierShadow(config);
     }
 
-    const { width, height, paddingRight, paddingTop, data } = config;
-    const datas = this.getDatas(data);
-    const minDatasetValue = Math.min(...datas);
-    const maxDatasetValue = Math.max(...datas);
+    const {
+      width,
+      height,
+      paddingRight,
+      paddingTop,
+      minDatasetValue,
+      maxDatasetValue
+    } = config;
     const baseHeight = calcBaseHeight(
       minDatasetValue,
       maxDatasetValue,
@@ -87,11 +91,16 @@ class LineChart extends AbstractChart {
       return this.renderBezierLine(config);
     }
 
-    const { width, height, paddingRight, paddingTop, data } = config;
+    const {
+      width,
+      height,
+      paddingRight,
+      paddingTop,
+      data,
+      minDatasetValue,
+      maxDatasetValue
+    } = config;
     const output = [];
-    const datas = this.getDatas(data);
-    const minDatasetValue = Math.min(...datas);
-    const maxDatasetValue = Math.max(...datas);
     const baseHeight = calcBaseHeight(
       minDatasetValue,
       maxDatasetValue,
@@ -132,7 +141,14 @@ class LineChart extends AbstractChart {
   };
 
   getBezierLinePoints = (dataset, config) => {
-    const { width, height, paddingRight, paddingTop, data } = config;
+    const {
+      width,
+      height,
+      paddingRight,
+      paddingTop,
+      minDatasetValue,
+      maxDatasetValue
+    } = config;
     if (dataset.data.length === 0) {
       return "M0,0";
     }
@@ -141,9 +157,6 @@ class LineChart extends AbstractChart {
       Math.floor(
         paddingRight + (i * (width - paddingRight)) / dataset.data.length
       );
-    const datas = this.getDatas(data);
-    const minDatasetValue = Math.min(...datas);
-    const maxDatasetValue = Math.max(...datas);
     const baseHeight = calcBaseHeight(
       minDatasetValue,
       maxDatasetValue,
@@ -285,6 +298,8 @@ class LineChart extends AbstractChart {
     };
     const legendOffset = this.props.data.legend ? height * 0.15 : 0;
     const datas = this.getDatas(this.props.data.datasets);
+    const minDatasetValue = Math.min(...datas);
+    const maxDatasetValue = Math.max(...datas);
     return (
       <Profiler id={"line chart content"} onRender={this.logMeasurement}>
         <View style={style}>
@@ -326,7 +341,7 @@ class LineChart extends AbstractChart {
                 {withHorizontalLabels
                   ? this.renderHorizontalLabels({
                       ...config,
-                      count: Math.min(...datas) === Math.max(...datas) ? 1 : 4,
+                      count: minDatasetValue === maxDatasetValue ? 1 : 4,
                       data: datas,
                       paddingTop,
                       paddingRight,
@@ -368,16 +383,20 @@ class LineChart extends AbstractChart {
                   ...config,
                   paddingRight,
                   paddingTop,
-                  data: data.datasets
+                  data: data.datasets,
+                  minDatasetValue,
+                  maxDatasetValue
                 })}
               </G>
               <G>
                 {withShadow &&
                   this.renderShadow({
                     ...config,
-                    data: data.datasets,
                     paddingRight,
-                    paddingTop
+                    paddingTop,
+                    minDatasetValue,
+                    maxDatasetValue,
+                    data: data.datasets
                   })}
               </G>
               <G>
@@ -392,11 +411,13 @@ class LineChart extends AbstractChart {
                     data={data.datasets}
                     paddingTop={paddingTop}
                     paddingRight={paddingRight}
-                    datas={this.getDatas(this.props.data.datasets)}
+                    datas={datas}
                     getDotColor={this.props.getDotColor}
                     getColor={this.getColor}
                     getPropsForDots={this.getPropsForDots}
                     fromZero={this.props.fromZero}
+                    minDatasetValue={minDatasetValue}
+                    maxDatasetValue={maxDatasetValue}
                   />
                 )}
               </G>
