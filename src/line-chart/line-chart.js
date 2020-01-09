@@ -6,6 +6,7 @@ import { LegendItem } from "./legend-item";
 import { Dots } from "./dots";
 import { VerticalLines } from "./vertical-lines";
 import { calcBaseHeight, calcHeight } from "./../chart-utils";
+import { DataLine } from "./data-line";
 
 const Profiler = React.unstable_Profiler;
 
@@ -86,60 +87,6 @@ class LineChart extends AbstractChart {
     });
   };
 
-  renderLine = config => {
-    if (this.props.bezier) {
-      return this.renderBezierLine(config);
-    }
-
-    const {
-      width,
-      height,
-      paddingRight,
-      paddingTop,
-      data,
-      minDatasetValue,
-      maxDatasetValue
-    } = config;
-    const output = [];
-    const baseHeight = calcBaseHeight(
-      minDatasetValue,
-      maxDatasetValue,
-      height,
-      this.props.fromZero
-    );
-    data.forEach((dataset, index) => {
-      const points = dataset.data.map((d, i) => {
-        const x =
-          (i * (width - paddingRight)) / dataset.data.length + paddingRight;
-        const y =
-          ((baseHeight -
-            calcHeight(
-              d,
-              height,
-              minDatasetValue,
-              maxDatasetValue,
-              this.props.fromZero
-            )) /
-            4) *
-            3 +
-          paddingTop;
-        return `${x},${y}`;
-      });
-
-      output.push(
-        <Polyline
-          key={index}
-          points={points.join(" ")}
-          fill="none"
-          stroke={this.getColor(dataset, 0.2)}
-          strokeWidth={this.getStrokeWidth(dataset)}
-        />
-      );
-    });
-
-    return output;
-  };
-
   getBezierLinePoints = (dataset, config) => {
     const {
       width,
@@ -157,12 +104,14 @@ class LineChart extends AbstractChart {
       Math.floor(
         paddingRight + (i * (width - paddingRight)) / dataset.data.length
       );
+
     const baseHeight = calcBaseHeight(
       minDatasetValue,
       maxDatasetValue,
       height,
       this.props.fromZero
     );
+
     const y = i => {
       const yHeight = calcHeight(
         dataset.data[i],
@@ -188,21 +137,6 @@ class LineChart extends AbstractChart {
         })
       )
       .join(" ");
-  };
-
-  renderBezierLine = config => {
-    return config.data.map((dataset, index) => {
-      const result = this.getBezierLinePoints(dataset, config);
-      return (
-        <Path
-          key={index}
-          d={result}
-          fill="none"
-          stroke={this.getColor(dataset, 0.2)}
-          strokeWidth={this.getStrokeWidth(dataset)}
-        />
-      );
-    });
   };
 
   renderBezierShadow = config => {
@@ -379,14 +313,22 @@ class LineChart extends AbstractChart {
                   : null}
               </G>
               <G>
-                {this.renderLine({
-                  ...config,
-                  paddingRight,
-                  paddingTop,
-                  data: data.datasets,
-                  minDatasetValue,
-                  maxDatasetValue
-                })}
+                <DataLine
+                  config={{
+                    ...config,
+                    paddingRight,
+                    paddingTop,
+                    minDatasetValue,
+                    maxDatasetValue
+                  }}
+                  paddingRight={paddingRight}
+                  paddingTop={paddingTop}
+                  data={data.datasets}
+                  getBezierLinePoints={this.getBezierLinePoints}
+                  getStrokeWidth={this.getStrokeWidth}
+                  getColor={this.getColor}
+                  bezier={this.props.bezier}
+                />
               </G>
               <G>
                 {withShadow &&
