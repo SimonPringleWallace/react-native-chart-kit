@@ -1,5 +1,103 @@
 # Changelog
 
+## v6.6.0
+
+- added `propsForVerticalLabels` and `propsForHorizontalLabels`
+
+## v6.5.0
+
+- added `StackedBarChart` `percentile` stacking
+
+## v6.4.1
+
+- added `PieChart` props `avoidFalseZero`
+
+## v6.4.0
+
+- `ProgressChart` updated to include a condition to divide width by 2 for x value
+
+## v6.2.0
+
+- added `withVerticalLines` and `withHorizontalLines` to `LineChart`
+
+## v6.1.0
+
+- added `scrollableInfoTextDecorator`
+
+## v6.0.0
+
+- Typescript rewrite
+
+## v5.6.1
+
+- fixed linear gradient issue due to `react-native-svg` lib update
+- added handling for datasets data is null to use last line coordinates
+- updated to Expo SDK 37 and add clarification on usage to README.md
+
+## v5.6.0
+
+- added `showValuesOnTopOfBars` prop to `BarChart`
+- fixed decimalPlaces being 0 and not applied in `BarChart`
+
+## v5.5.0
+
+- added `useShadowColorFromDataset` to `chartConfig` to make `LineChart` shadow same as line color
+
+## v5.4.2
+
+- fixed decimalPlaces not being sent with barChart
+
+## v5.4.0
+
+- added strokeWidth & radius as props for ProgressChart
+
+## v5.3.1
+
+- TS type fixes
+
+## v5.3.0
+
+- added missing ContributionGraph props
+- added `withScrollableDot` to LineChart and a whole bunch of props to `chartConfig`. New feature for Line Chart - scrollable dot. It allows to navigate through chart using gesture and see value at dot's current position.
+
+## v5.2.0
+
+- `propsForDots` added to `ChartConfig` interface
+
+## 5.1.1
+
+- add some safe default values in BarChart's `chartConfig` to avoid potential null pointers
+
+## 5.1.0
+
+- added a withDots property to each dataset in LineChart to disable dots on these lines
+- removed `prop-types`
+- added `onDayPress` to ContributionGraph
+
+## 5.0.0
+
+- made ContributionGraph opacity distribution even through range between the min and max values
+- added `getMonthLabel` to ContributionGraph
+- added `yAxisInterval` to LineChart, it allows you to skip vertical lines in the background
+- expaned StackedBarChart if it has no legend
+
+## 4.5.0
+
+- removed `.babelrc` from distribution
+- made decimalPlaces work for StackedBar Chart
+
+## 4.4.0
+
+- added ability to add custom segments on the Y-Axis
+- implemented barRadius config in BarChart
+- added showBarTops prop to BarChart
+
+## 4.3.0
+
+- added `barPercentage?: number; hideLegend: boolean;` props to StackedBarChart
+- added `barRadius` to chart config
+- added `renderDotContent` to LineChart
+
 ## 4.2.0
 
 - line chart supports legend

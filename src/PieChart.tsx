@@ -1,19 +1,38 @@
+import Pie from "paths-js/pie";
 import React from "react";
-import { View } from "react-native";
-import { Svg, Rect, Text, G, Path } from "react-native-svg";
-import AbstractChart from "./abstract-chart";
+import { View, ViewStyle } from "react-native";
+import { G, Path, Rect, Svg, Text } from "react-native-svg";
 
-const Pie = require("paths-js/pie");
+import AbstractChart, { AbstractChartProps } from "./AbstractChart";
 
-class PieChart extends AbstractChart {
+export interface PieChartProps extends AbstractChartProps {
+  data: Array<any>;
+  width: number;
+  height: number;
+  accessor: string;
+  backgroundColor: string;
+  paddingLeft: string;
+  center?: Array<number>;
+  absolute?: boolean;
+  hasLegend?: boolean;
+  style?: Partial<ViewStyle>;
+  avoidFalseZero?: boolean;
+}
+
+type PieChartState = {};
+
+class PieChart extends AbstractChart<PieChartProps, PieChartState> {
   render() {
     const {
       style = {},
       backgroundColor,
       absolute = false,
-      hasLegend = true
+      hasLegend = true,
+      avoidFalseZero = false
     } = this.props;
+
     const { borderRadius = 0 } = style;
+
     const chart = Pie({
       center: this.props.center || [0, 0],
       r: 0,
@@ -23,18 +42,29 @@ class PieChart extends AbstractChart {
         return x[this.props.accessor];
       }
     });
+
     const total = this.props.data.reduce((sum, item) => {
       return sum + item[this.props.accessor];
     }, 0);
+
     const slices = chart.curves.map((c, i) => {
-      let value;
+      let value: string;
+
       if (absolute) {
         value = c.item[this.props.accessor];
       } else {
         if (total === 0) {
           value = 0 + "%";
         } else {
+          const percentage = Math.round(
+            (100 / total) * c.item[this.props.accessor]
+          );
           value = Math.round((100 / total) * c.item[this.props.accessor]) + "%";
+          if (avoidFalseZero && percentage === 0) {
+            value = "<1%";
+          } else {
+            value = percentage + "%";
+          }
         }
       }
 
@@ -73,6 +103,7 @@ class PieChart extends AbstractChart {
         </G>
       );
     });
+
     return (
       <View
         style={{

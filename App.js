@@ -1,21 +1,25 @@
 import "babel-polyfill";
+
 import React from "react";
-import { ScrollView, StatusBar, Dimensions, Text } from "react-native";
-import ScrollableTabView from "react-native-scrollable-tab-view";
+import { Dimensions, ScrollView, StatusBar, Text } from "react-native";
 import FlashMessage, { showMessage } from "react-native-flash-message";
-import LineChart from "./src/line-chart";
-import PieChart from "./src/pie-chart";
-import ProgressChart from "./src/progress-chart";
-import BarChart from "./src/bar-chart";
-import StackedBarChart from "./src/stackedbar-chart";
-import ContributionGraph from "./src/contribution-graph";
+import ScrollableTabView from "react-native-scrollable-tab-view";
+
 import {
-  data,
   contributionData,
+  data,
   pieChartData,
   progressChartData,
   stackedBarGraphData
 } from "./data";
+import {
+  BarChart,
+  ContributionGraph,
+  LineChart,
+  PieChart,
+  ProgressChart,
+  StackedBarChart
+} from "./dist/";
 
 // in Expo - swipe left to see the following styling, or create your own
 const chartConfigs = [
@@ -168,6 +172,15 @@ export default class App extends React.Component {
                 height={220}
                 chartConfig={chartConfig}
               />
+              <Text style={labelStyle}>Stacked Bar Graph Percentile</Text>
+              <StackedBarChart
+                style={graphStyle}
+                data={stackedBarGraphData}
+                width={width}
+                height={220}
+                chartConfig={chartConfig}
+                percentile
+              />
               <Text style={labelStyle}>Pie Chart</Text>
               <PieChart
                 data={pieChartData}
@@ -204,9 +217,91 @@ export default class App extends React.Component {
                 width={width}
                 height={height}
                 yAxisLabel="$"
+                segments={5}
                 chartConfig={chartConfig}
                 style={graphStyle}
                 hidePointsAtIndex={[0, data.datasets[0].data.length - 1]}
+              />
+              <Text style={labelStyle}>
+                Line Chart with shadow background as line color
+              </Text>
+              <LineChart
+                bezier
+                data={data}
+                width={width}
+                height={height}
+                yAxisLabel="$"
+                segments={5}
+                chartConfig={{
+                  ...chartConfig,
+                  useShadowColorFromDataset: true
+                }}
+                style={graphStyle}
+                hidePointsAtIndex={[0, data.datasets[0].data.length - 1]}
+              />
+
+              <Text style={labelStyle}>Scrollable Line Chart</Text>
+              <LineChart
+                data={{
+                  labels: [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June"
+                  ],
+                  datasets: [
+                    {
+                      data: [
+                        Math.random() * 100,
+                        Math.random() * 100,
+                        Math.random() * 100,
+                        Math.random() * 100,
+                        Math.random() * 100,
+                        Math.random() * 100,
+                        Math.random() * 100
+                      ]
+                    }
+                  ]
+                }}
+                width={Dimensions.get("window").width} // from react-native
+                height={220}
+                withInnerLines={false}
+                withDots={false}
+                withShadow={false}
+                withScrollableDot={true}
+                yAxisInterval={1} // optional, defaults to 1
+                chartConfig={{
+                  backgroundGradientFrom: "#1F1F1F",
+                  decimalPlaces: 2, // optional, defaults to 2dp
+                  color: (opacity = 1) => "#FF5500",
+                  labelColor: (opacity = 1) => "#A0A0A0",
+                  linejoinType: "round",
+
+                  scrollableDotFill: "#fff",
+                  scrollableDotRadius: 6,
+                  scrollableDotStrokeColor: "#FF5500",
+                  scrollableDotStrokeWidth: 3,
+
+                  scrollableInfoViewStyle: {
+                    justifyContent: "center",
+                    alignContent: "center",
+                    backgroundColor: "#121212",
+                    borderRadius: 2
+                  },
+                  scrollableInfoTextStyle: {
+                    color: "#C4C4C4",
+                    marginHorizontal: 4,
+                    flex: 1,
+                    textAlign: "center"
+                  },
+                  scrollableInfoSize: { width: 65, height: 30 },
+                  scrollableInfoOffset: 15
+                }}
+                style={{
+                  marginVertical: 8
+                }}
               />
             </ScrollView>
           );

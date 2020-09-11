@@ -5,3 +5,5 @@ npm-debug.*
 package-lock.json
 .idea
 .vscode
+yarn.lock
+dist
